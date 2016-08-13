@@ -1,0 +1,9 @@
+<resources>
+    <string name="hello_world">Hello world!</string>
+    <string name="app_name">all in one</string>
+    <string name="action_settings">Settings</string>
+    <string name="camera">Camera</string>
+    <string name="flash">flash light</string>
+    <string name="wifi">wifi</string>
+    <string name="internet">internet</string>
+</resources>
