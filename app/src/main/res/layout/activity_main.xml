@@ -4,10 +4,16 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".MainActivity"
     android:layout_height="match_parent"
-    android:orientation="horizontal"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:weightSum="1.0"
     android:background="#000000">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+
 
     <ImageButton
         android:layout_width="wrap_content"
@@ -29,6 +35,30 @@
         android:src="@drawable/camera"
         android:contentDescription="@null"
         />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/net"
+            android:layout_weight=".5"
+            android:layout_margin="10dp"
+            android:src="@drawable/light_off"
+            android:contentDescription="@null"/>
+        <ImageButton
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/wifi"
+            android:layout_weight=".5"
+            android:layout_margin="10dp"
+            android:src="@drawable/light_off"
+            android:contentDescription="@null"/>
 
+
+
+    </LinearLayout>
 
 </LinearLayout>

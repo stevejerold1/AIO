@@ -1,62 +1,28 @@
 package com.example.steve_pc.aio;
 
-import android.app.AlertDialog;
+
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
-import android.hardware.Camera.Parameters;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageButton;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
-import android.widget.Toast;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import android.app.Activity;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.ImageView;
+public class MainActivity extends AppCompatActivity  {
 
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.graphics.Bitmap;
-import android.os.BatteryManager;
-import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
-import java.util.ArrayList;
-import java.util.Set;
-
-
-public class MainActivity extends AppCompatActivity {
-
-    Parameters params;
-    ImageButton flashlightSwitchImg;
+    Camera.Parameters params;
+    ImageButton flashlightSwitchImg,b1,b2;
     private boolean isFlashlightOn;
-    static Camera camera = null;
-    ImageButton b1, b2;
+    public static Camera camera = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,22 +31,9 @@ public class MainActivity extends AppCompatActivity {
 
 
         b1 = (ImageButton) findViewById(R.id.camera);
-        b1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                startActivityForResult(intent, 0);
-            }
+        b2 = (ImageButton)findViewById(R.id.net);
 
-            protected void onStop() {
 
-                if (camera != null) {
-                    camera.release();
-                    camera = null;
-                }
-            }
-
-        });
 
         // flashlight on off Image
         flashlightSwitchImg = (ImageButton) findViewById(R.id.flashlightSwitch);
@@ -106,9 +59,93 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        b1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(intent, 0);
+            }
+        });
 
 
+
+
+
+        // set click event for button
+        b2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // check current state first
+                boolean state = isMobileDataEnable();
+                // toggle the state
+                if(state)toggleMobileDataConnection(false);
+                else toggleMobileDataConnection(true);
+                // update UI to new state
+                updateUI(!state);
+            }
+        });
     }
+    public void updateUI(boolean state) {
+        //set text according to state
+        if(state) {
+            b2.setImageResource(R.drawable.light_off);
+
+        } else {
+            b2.setImageResource(R.drawable.light_on);
+
+        }
+    }
+    public boolean isMobileDataEnable() {
+        boolean mobileDataEnabled = false; // Assume disabled
+        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        try {
+            Class cmClass = Class.forName(cm.getClass().getName());
+            Method method = cmClass.getDeclaredMethod("getMobileDataEnabled");
+            method.setAccessible(true); // Make the method callable
+            // get the setting for "mobile data"
+            mobileDataEnabled = (Boolean)method.invoke(cm);
+        } catch (Exception e) {
+            // Some problem accessible private API and do whatever error handling you want here
+        }
+        return mobileDataEnabled;
+    }
+    public boolean toggleMobileDataConnection(boolean ON)
+    {
+        try {
+            //create instance of connectivity manager and get system connectivity service
+            final ConnectivityManager conman = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+            //create instance of class and get name of connectivity manager system service class
+            final Class conmanClass  = Class.forName(conman.getClass().getName());
+            //create instance of field and get mService Declared field
+            final Field iConnectivityManagerField= conmanClass.getDeclaredField("mService");
+            //Attempt to set the value of the accessible flag to true
+            iConnectivityManagerField.setAccessible(true);
+            //create instance of object and get the value of field conman
+            final Object iConnectivityManager = iConnectivityManagerField.get(conman);
+            //create instance of class and get the name of iConnectivityManager field
+            final Class iConnectivityManagerClass=  Class.forName(iConnectivityManager.getClass().getName());
+            //create instance of method and get declared method and type
+            final Method setMobileDataEnabledMethod= iConnectivityManagerClass.getDeclaredMethod("setMobileDataEnabled",Boolean.TYPE);
+            //Attempt to set the value of the accessible flag to true
+            setMobileDataEnabledMethod.setAccessible(true);
+            //dynamically invoke the iConnectivityManager object according to your need (true/false)
+            setMobileDataEnabledMethod.invoke(iConnectivityManager, ON);
+        } catch (Exception e){
+        }
+        return true;
+    }
+
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (camera != null) {
+            camera.release();
+            camera = null;
+        }
+    }
+
+
 
     private void showNoCameraAlert() {
         new AlertDialog.Builder(this)
@@ -124,9 +161,10 @@ public class MainActivity extends AppCompatActivity {
         return;
     }
 
+
     private void setFlashlightOn() {
         params = camera.getParameters();
-        params.setFlashMode(Parameters.FLASH_MODE_TORCH);
+        params.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
         camera.setParameters(params);
         camera.startPreview();
         isFlashlightOn = true;
@@ -134,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setFlashlightOff() {
-        params.setFlashMode(Parameters.FLASH_MODE_OFF);
+        params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
         camera.setParameters(params);
         camera.stopPreview();
         isFlashlightOn = false;
@@ -143,12 +181,5 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-        if (camera != null) {
-            camera.release();
-            camera = null;
-        }
-    }
+
 }
